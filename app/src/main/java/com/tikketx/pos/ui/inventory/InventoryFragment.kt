@@ -12,7 +12,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
-import com.google.firebase.firestore.ListenerRegistration
 import com.tikketx.pos.R
 import com.tikketx.pos.data.SessionManager
 import com.tikketx.pos.data.SwipeBackend
@@ -43,7 +42,7 @@ class InventoryFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var adapter: InventoryAdapter
-    private var registration: ListenerRegistration? = null
+    private var registration: SwipeBackend.ScanRequestSubscription? = null
 
     private var products: List<Product> = emptyList()
     private var query: String = ""

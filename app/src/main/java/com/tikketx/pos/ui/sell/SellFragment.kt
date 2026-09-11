@@ -11,7 +11,6 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
-import com.google.firebase.firestore.ListenerRegistration
 import com.tikketx.pos.R
 import com.tikketx.pos.data.CartManager
 import com.tikketx.pos.data.SessionManager
@@ -37,7 +36,7 @@ class SellFragment : Fragment() {
     private var query: String = ""
     private var category: String? = null
     private lateinit var adapter: ProductAdapter
-    private var registration: ListenerRegistration? = null
+    private var registration: SwipeBackend.ScanRequestSubscription? = null
 
     private val cartListener: () -> Unit = { if (_binding != null) renderCartBar() }
 

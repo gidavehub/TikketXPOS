@@ -74,9 +74,9 @@ dependencies {
     implementation(libs.kotlinx.coroutines.play.services)
 
     implementation(platform(libs.firebase.bom))
+    // Auth and Storage only. The Firestore and Realtime Database SDKs were
+    // removed with the move to Neon — data goes through SwipeApi now.
     implementation(libs.firebase.auth)
-    implementation(libs.firebase.database)
-    implementation(libs.firebase.firestore)
     implementation(libs.firebase.storage)
     implementation(libs.okhttp)
 

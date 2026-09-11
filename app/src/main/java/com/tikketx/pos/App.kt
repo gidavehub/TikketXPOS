@@ -47,7 +47,7 @@ class App : Application() {
         }
 
         SessionManager.init(this)
-        SwipeBackend.init()
+        SwipeBackend.init(this)
         PrinterManager.init(this)
     }
 }
