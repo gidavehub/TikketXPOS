@@ -5,21 +5,12 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.MutableData
-import com.google.firebase.database.Transaction
-import com.google.firebase.database.ValueEventListener
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.FirebaseFirestoreException
-import com.google.firebase.firestore.FirebaseFirestoreSettings
-import com.google.firebase.firestore.PersistentCacheSettings
-import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
+import com.tikketx.pos.data.local.LocalStore
+import com.tikketx.pos.data.net.Outbox
+import com.tikketx.pos.data.net.SwipeApi
+import org.json.JSONArray
+import org.json.JSONObject
 import com.tikketx.pos.data.model.CartItem
 import com.tikketx.pos.data.model.CompanyProfile
 import com.tikketx.pos.data.model.CompletedSale
@@ -35,8 +26,15 @@ import com.tikketx.pos.data.model.StockMovementType
 import com.tikketx.pos.data.model.TaxRate
 import com.tikketx.pos.data.model.Terminal
 import com.tikketx.pos.data.model.TerminalPermissions
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -45,67 +43,129 @@ import java.util.TimeZone
 import java.util.UUID
 
 /**
- * All communication with the Swipe platform's Firebase project.
+ * All communication with the Swipe platform.
  *
- * There is exactly one copy of the data and both ends read it directly:
- * products, stock movements and sales live in Firestore, written with the same
- * field names and the same semantics as the web app, so nothing has to be
- * reconciled afterwards. A terminal signs in as a real Firebase Auth user
- * (`<username>@<company-domain>`, created from Swipe → POS Devices) and is
- * therefore subject to the same security rules as the browser.
+ * There is exactly one copy of the data and both ends read it: products, stock
+ * movements and sales live in Neon Postgres, reached through the same
+ * `/api/data` route the dashboard uses, with the same field names and the same
+ * semantics — so nothing has to be reconciled afterwards.
  *
- * That last part is load-bearing. Firestore resolves company access through a
- * `company_members/{companyId}_{uid}` document; a terminal without one can
- * authenticate perfectly and still be denied on every single read and write.
- * Provisioning creates it alongside the auth user — see the `createPosTerminal`
- * Cloud Function. [describePermissionDenied] exists because that failure is
- * otherwise indistinguishable from an empty inventory.
+ * Auth is unchanged. A terminal still signs in as a real Firebase Auth user
+ * (`<username>@<company-domain>`, created from Swipe → POS Devices); only the
+ * database moved.
  *
- * Collections used, all shared with the dashboard:
+ * ── What replaced the Firestore SDK, and why it had to ──────────────────────
+ *
+ * The SDK was not just a transport. It gave this app a persistent read cache
+ * and a durable write queue, and both were load-bearing: a shop in Kombo does
+ * not stop trading because the network did. HTTP has neither, so they are
+ * rebuilt explicitly — [LocalStore] mirrors rows for reading, [Outbox] queues
+ * writes until they land.
+ *
+ * Reads go to the server and fall back to the mirror. Writes go to the outbox
+ * first and are acknowledged immediately, which is the same bargain the old
+ * code struck with its 4-second write window, for the same reason: "with no
+ * signal, ringing up a sale sat on the spinner until the cashier gave up".
+ *
+ * Stock is the one place the shape changed. It used to be a
+ * `FieldValue.increment()` on the product; it is now an appended
+ * `stock_movements` row, and a Postgres trigger moves `current_stock`. That is
+ * what makes a queued sale safe to retry — the trigger fires AFTER INSERT, and
+ * a replayed row takes the UPDATE path, so stock cannot be decremented twice.
+ *
+ * Tables used, all shared with the dashboard:
  *   products, stock_movements, pos_sales, pos_sale_items, customer_credits,
- *   tax_rates, companies
- * RTDB nodes:
- *   pos_terminals, pos_live/<companyId>/<terminalId>, pos_scan_requests
+ *   tax_rates, companies, pos_terminals, pos_live, pos_scan_requests
  */
 object SwipeBackend {
 
     const val APP_NAME = "swipe"
 
     private lateinit var auth: FirebaseAuth
-    private lateinit var firestore: FirebaseFirestore
-    private lateinit var rtdb: FirebaseDatabase
     private lateinit var storage: FirebaseStorage
+    private lateinit var local: LocalStore
 
-    fun init() {
+    /**
+     * Where the polling watchers live.
+     *
+     * Firestore and RTDB pushed; HTTP does not, so anything that used to be a
+     * snapshot listener is a loop here. Each returns a [ScanRequestSubscription]
+     * so call sites cancel them exactly as they did before.
+     */
+    private val pollScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    /**
+     * @param context needed for the local database. The offline mirror and the
+     * write queue are what used to be Firestore's persistence, so they have to
+     * be up before anything reads or writes.
+     */
+    fun init(context: android.content.Context) {
         val app = FirebaseApp.getInstance(APP_NAME)
         auth = FirebaseAuth.getInstance(app)
-
-        // Persistence has to be turned on before either database is touched,
-        // which is why it lives here rather than at the first call site.
-        rtdb = FirebaseDatabase.getInstance(app).apply {
-            // Off by default, unlike Firestore. Without it the heartbeat, the
-            // terminal record and the scan channel all fail the moment the
-            // signal drops, and sign-in cannot resolve a terminal at all.
-            runCatching { setPersistenceEnabled(true) }
-        }
-
-        firestore = FirebaseFirestore.getInstance(app).apply {
-            // A shop's whole catalogue has to survive in cache through a long
-            // outage; the default 100 MB budget is generous for that, but an
-            // unbounded one means the till never evicts the products it is
-            // about to sell.
-            runCatching {
-                firestoreSettings = FirebaseFirestoreSettings.Builder(firestoreSettings)
-                    .setLocalCacheSettings(
-                        PersistentCacheSettings.newBuilder()
-                            .setSizeBytes(FirebaseFirestoreSettings.CACHE_SIZE_UNLIMITED)
-                            .build()
-                    )
-                    .build()
-            }
-        }
-
         storage = FirebaseStorage.getInstance(app)
+
+        local = LocalStore(context.applicationContext)
+        Outbox.init(local)
+    }
+
+    // ---------------------------------------------------------------------
+    // Reads: server first, mirror second
+    // ---------------------------------------------------------------------
+
+    /**
+     * Fetch a list and mirror it, falling back to the mirror when the request
+     * fails.
+     *
+     * This is the behaviour Firestore's persistent cache gave: the catalogue a
+     * till needs to sell stays readable through an outage. The fallback is
+     * silent on purpose — the cashier is told the till is offline by the
+     * banner, not by an empty product list.
+     */
+    private fun fetchList(table: String, opts: JSONObject, mirror: Boolean = true): List<JSONObject> =
+        try {
+            val result = SwipeApi.call(SwipeApi.opGetList(table, opts)) as? JSONArray ?: JSONArray()
+            val rows = (0 until result.length()).mapNotNull { result.optJSONObject(it) }
+            if (mirror) local.putAll(table, rows)
+            rows
+        } catch (err: Exception) {
+            if (mirror) local.getAll(table) else emptyList()
+        }
+
+    private fun fetchOne(table: String, opts: JSONObject): JSONObject? =
+        try {
+            SwipeApi.call(SwipeApi.opGetOne(table, opts)) as? JSONObject
+        } catch (err: Exception) {
+            null
+        }
+
+    private fun fetchById(table: String, id: String): JSONObject? =
+        try {
+            (SwipeApi.call(SwipeApi.opGetById(table, id)) as? JSONObject)
+                ?.also { local.put(table, it) }
+        } catch (err: Exception) {
+            local.get(table, id)
+        }
+
+    // ---------------------------------------------------------------------
+    // Writes: queued, then acknowledged
+    // ---------------------------------------------------------------------
+
+    /**
+     * Queue a write and update the mirror straight away.
+     *
+     * The optimistic mirror write is what lets the screen show the sale the
+     * instant it is rung up, whether or not the server has heard about it yet.
+     */
+    private fun queueWrite(op: JSONObject, label: String?, table: String? = null, row: JSONObject? = null) {
+        if (table != null && row != null) local.put(table, row)
+        Outbox.enqueue(op, label)
+    }
+
+    /** JSON object from a vararg of pairs, dropping nulls the way the app expects. */
+    private fun json(vararg pairs: Pair<String, Any?>): JSONObject {
+        val o = JSONObject()
+        for ((k, v) in pairs) if (v != null) o.put(k, v)
+        return o
     }
 
     // ---------------------------------------------------------------------
@@ -192,18 +252,24 @@ object SwipeBackend {
      * distinction that matters when the shop's wifi is up but its uplink is not.
      */
     fun observeConnection(onChange: (Boolean) -> Unit): ScanRequestSubscription {
-        val ref = rtdb.getReference(".info/connected")
-        val listener = object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val connected = snapshot.getValue(Boolean::class.java) ?: false
-                isOnline = connected
-                onChange(connected)
+        // RTDB published this at `.info/connected`, which was a real backend
+        // connection rather than the phone merely holding a network interface.
+        // Polling the data route keeps that distinction — it answers only if
+        // the server does, so a shop whose wifi is up but whose uplink is not
+        // still reads as offline.
+        val job = pollScope.launch {
+            while (isActive) {
+                val connected = withContext(Dispatchers.IO) { SwipeApi.ping() }
+                if (connected != isOnline) {
+                    isOnline = connected
+                    withContext(Dispatchers.Main) { onChange(connected) }
+                    // Coming back up is the moment to flush queued sales.
+                    if (connected) Outbox.drain()
+                }
+                delay(if (isOnline) 30_000 else 5_000)
             }
-
-            override fun onCancelled(error: DatabaseError) = Unit
         }
-        ref.addValueEventListener(listener)
-        return ScanRequestSubscription(ref, listener)
+        return ScanRequestSubscription(job)
     }
 
     // ---------------------------------------------------------------------
@@ -258,8 +324,7 @@ object SwipeBackend {
      * this business" never again looks like "you haven't added anything yet".
      */
     fun describeError(e: Exception): String {
-        val denied = e is FirebaseFirestoreException &&
-            e.code == FirebaseFirestoreException.Code.PERMISSION_DENIED
+        val denied = e is SwipeApi.Rejected && (e.status == 401 || e.status == 403)
         return if (denied) {
             "This terminal isn't linked to the business yet, so it can't see the " +
                 "shared inventory. On Swipe, open POS Devices — that repairs the link — " +
@@ -337,16 +402,17 @@ object SwipeBackend {
      * set, anyone else gets the cashier set.
      */
     private suspend fun findAccountSession(uid: String, address: String): Terminal? {
-        val roleSnap = firestore.collection("user_company_roles")
-            .whereEqualTo("user_id", uid)
-            .limit(1)
-            .get().await()
-        val roleDoc = roleSnap.documents.firstOrNull() ?: return null
-        val companyId = roleDoc.getString("company_id") ?: return null
-        val role = (roleDoc.getString("role") ?: "member").lowercase()
+        val roleRow = withContext(Dispatchers.IO) {
+            fetchOne(
+                "user_company_roles",
+                SwipeApi.opts(where = SwipeApi.where(Triple("user_id", "==", uid))),
+            )
+        } ?: return null
+        val companyId = roleRow.optString("company_id").ifEmpty { return null }
+        val role = roleRow.optString("role", "member").lowercase()
 
-        val companyDoc = firestore.collection("companies").document(companyId).get().await()
-        val companyName = companyDoc.getString("name") ?: "My business"
+        val companyRow = withContext(Dispatchers.IO) { fetchById("companies", companyId) }
+        val companyName = companyRow?.optString("name")?.ifEmpty { null } ?: "My business"
 
         val isManager = role in setOf("owner", "admin", "manager")
 
@@ -356,7 +422,7 @@ object SwipeBackend {
             id = "account:$uid",
             companyId = companyId,
             companyName = companyName,
-            posDomain = companyDoc.getString("pos_domain") ?: "",
+            posDomain = companyRow?.optString("pos_domain").orEmpty(),
             terminalName = address.substringBefore('@'),
             username = address,
             authEmail = address,
@@ -371,16 +437,33 @@ object SwipeBackend {
         )
     }
 
-    /** Keyed lookup — `pos_terminals` is indexed on `auth_uid`. */
+    /**
+     * Keyed lookup on `auth_uid`.
+     *
+     * On RTDB this needed an `.indexOn` that the ruleset deliberately does not
+     * carry, so the dashboard ended up reading the whole node and filtering in
+     * JavaScript. Postgres has a real index on the column.
+     */
     private suspend fun findTerminalByUid(uid: String): Terminal? {
-        val snap = rtdb.getReference("pos_terminals")
-            .orderByChild("auth_uid").equalTo(uid).get().await()
-        for (child in snap.children) {
-            val map = child.value as? Map<*, *> ?: continue
-            return Terminal.fromMap(child.key ?: "", map)
-        }
-        return null
+        val row = withContext(Dispatchers.IO) {
+            fetchOne(
+                "pos_terminals",
+                SwipeApi.opts(where = SwipeApi.where(Triple("auth_uid", "==", uid))),
+            )
+        } ?: return null
+        return Terminal.fromMap(row.optString("id"), row.toMap())
     }
+
+    /** JSONObject -> Map, for the model classes' existing `fromMap` builders. */
+    private fun JSONObject.toMap(): Map<String, Any?> =
+        keys().asSequence().associateWith { key ->
+            when (val v = opt(key)) {
+                JSONObject.NULL -> null
+                is JSONObject -> v.toMap()
+                is JSONArray -> (0 until v.length()).map { i -> v.opt(i) }
+                else -> v
+            }
+        }
 
     /**
      * Outcome of re-reading the terminal record.
@@ -437,8 +520,14 @@ object SwipeBackend {
         val t = SessionManager.terminal
         if (t != null) {
             // Best-effort: mark the device offline before the token goes away.
+            // Queued rather than posted — if there is no signal this is exactly
+            // the write that cannot go out, and blocking sign-out on it would
+            // strand the cashier.
             runCatching {
-                rtdb.getReference("pos_live/${t.companyId}/${t.id}/status").setValue("offline")
+                Outbox.enqueue(
+                    SwipeApi.opUpdate("pos_live", t.id, json("status" to "offline")),
+                    "Terminal offline",
+                )
             }
         }
         SessionManager.terminal = null
@@ -1080,11 +1169,12 @@ object SwipeBackend {
     // ---------------------------------------------------------------------
 
     /** Handle for a scan-request subscription; call [remove] when done. */
-    class ScanRequestSubscription internal constructor(
-        private val ref: DatabaseReference,
-        private val listener: ValueEventListener,
-    ) {
-        fun remove() = ref.removeEventListener(listener)
+    /**
+     * A running watcher. Named for its original job, kept because every call
+     * site already stores one and calls [remove] on teardown.
+     */
+    class ScanRequestSubscription internal constructor(private val job: Job) {
+        fun remove() = job.cancel()
     }
 
     /** Streams every scan request for this company; filter on the caller side. */
