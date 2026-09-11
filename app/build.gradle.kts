@@ -15,9 +15,28 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Where the Swipe data route lives. The till no longer talks to
+        // Firestore directly — it posts to /api/data, the same endpoint the
+        // dashboard uses, so there is one query engine and one storage shape.
+        buildConfigField(
+            "String",
+            "SWIPE_API_ORIGIN",
+            "\"${project.findProperty("swipeApiOrigin") ?: "https://app.swipe.gm"}\"",
+        )
     }
 
     buildTypes {
+        debug {
+            // Point a debug install at a laptop with:
+            //   ./gradlew assembleDebug -PswipeApiOriginDebug=http://10.0.2.2:8080
+            // 10.0.2.2 is the host machine as seen from the Android emulator.
+            buildConfigField(
+                "String",
+                "SWIPE_API_ORIGIN",
+                "\"${project.findProperty("swipeApiOriginDebug") ?: project.findProperty("swipeApiOrigin") ?: "http://10.0.2.2:8080"}\"",
+            )
+        }
         release {
             isMinifyEnabled = false
             signingConfig = signingConfigs.getByName("debug")
@@ -59,6 +78,7 @@ dependencies {
     implementation(libs.firebase.database)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.storage)
+    implementation(libs.okhttp)
 
     implementation(libs.camera.core)
     implementation(libs.camera.camera2)
