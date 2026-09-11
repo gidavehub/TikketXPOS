@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Floating checkout pill: glossy brand gradient with press ripple. -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/white_20">
+    <item>
+        <layer-list>
+            <item>
+                <shape android:shape="rectangle">
+                    <gradient
+                        android:angle="315"
+                        android:startColor="@color/tikketx_red_bright"
+                        android:centerColor="@color/tikketx_red"
+                        android:endColor="@color/tikketx_red_deep" />
+                    <corners android:radius="22dp" />
+                </shape>
+            </item>
+            <item>
+                <shape android:shape="rectangle">
+                    <gradient
+                        android:angle="270"
+                        android:startColor="@color/white_20"
+                        android:endColor="@android:color/transparent" />
+                    <corners android:radius="22dp" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+</ripple>

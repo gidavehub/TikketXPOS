@@ -1,0 +1,165 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- TikketX POS theme — brand red on clean slate neutrals.
+         The till stays light in every system mode: layouts hardcode light
+         backgrounds, so there must be no values-night override of this theme
+         (a dark palette would render text/hints white-on-white). Light mode
+         is also enforced at runtime via MODE_NIGHT_NO in App.onCreate().
+
+         The app runs edge-to-edge (targetSdk 35 enforces it): the status bar
+         is transparent and every screen puts a brand-gradient header or the
+         login gradient beneath it, with white status icons. Screens opt their
+         chrome in via the helpers in ui/common/EdgeToEdge.kt. -->
+    <style name="Base.Theme.TikketXPOS" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">@color/tikketx_red</item>
+        <item name="colorPrimaryVariant">@color/tikketx_red_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/tikketx_emerald</item>
+        <item name="colorSecondaryVariant">@color/tikketx_emerald</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="android:colorBackground">@color/background</item>
+        <item name="colorSurface">@color/card</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+        <item name="android:textColorHint">@color/text_secondary</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+
+        <item name="textInputStyle">@style/Widget.TikketX.TextInput</item>
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.TikketX.BottomSheet</item>
+        <item name="bottomNavigationStyle">@style/Widget.TikketX.BottomNav</item>
+    </style>
+
+    <!-- Concrete theme; values-v27 layers transparent-nav-bar items on top. -->
+    <style name="Theme.TikketXPOS" parent="Base.Theme.TikketXPOS" />
+
+    <!-- ============ Buttons ============ -->
+
+    <!-- Primary action: glossy brand-red gradient, explicit white text/icon
+         (never inherit these from the theme — color-on-color bugs). -->
+    <style name="Widget.TikketX.Button" parent="Widget.MaterialComponents.Button">
+        <item name="android:background">@drawable/bg_btn_primary</item>
+        <item name="backgroundTint">@null</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="iconTint">@color/white</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:letterSpacing">0.02</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+    </style>
+
+    <!-- Secondary action: white with brand-red outline + text. -->
+    <style name="Widget.TikketX.Button.Outlined" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="strokeColor">@color/tikketx_red</item>
+        <item name="strokeWidth">1.5dp</item>
+        <item name="cornerRadius">16dp</item>
+        <item name="android:textColor">@color/tikketx_red</item>
+        <item name="iconTint">@color/tikketx_red</item>
+        <item name="rippleColor">@color/tikketx_red_soft</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <!-- Quiet neutral outline (e.g. "Done"). -->
+    <style name="Widget.TikketX.Button.OutlinedNeutral" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="strokeColor">@color/border</item>
+        <item name="strokeWidth">1.5dp</item>
+        <item name="cornerRadius">16dp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="iconTint">@color/text_secondary</item>
+        <item name="rippleColor">@color/surface_soft</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <!-- Soft red-tinted fill (e.g. "Add photo", "Sign out"). -->
+    <style name="Widget.TikketX.Button.Tonal" parent="Widget.MaterialComponents.Button.UnelevatedButton">
+        <item name="backgroundTint">@color/tikketx_red_soft</item>
+        <item name="cornerRadius">14dp</item>
+        <item name="android:textColor">@color/tikketx_red</item>
+        <item name="iconTint">@color/tikketx_red</item>
+        <item name="rippleColor">@color/tikketx_red_soft_border</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <!-- White button that sits on the gradient header (e.g. Scan). -->
+    <style name="Widget.TikketX.Button.OnGradient" parent="Widget.MaterialComponents.Button.UnelevatedButton">
+        <item name="backgroundTint">@color/card</item>
+        <item name="cornerRadius">16dp</item>
+        <item name="android:textColor">@color/tikketx_red</item>
+        <item name="iconTint">@color/tikketx_red</item>
+        <item name="rippleColor">@color/tikketx_red_soft</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <!-- Segmented choice chips (payment method, ticket style). -->
+    <style name="Widget.TikketX.ToggleButton" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="backgroundTint">@color/toggle_bg</item>
+        <item name="strokeColor">@color/toggle_stroke</item>
+        <item name="cornerRadius">14dp</item>
+        <item name="android:textColor">@color/toggle_text</item>
+        <item name="rippleColor">@color/tikketx_red_soft</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <!-- ============ Text fields ============ -->
+
+    <!-- Soft filled boxes with a red focus ring — set as the theme-wide
+         textInputStyle so every TextInputLayout picks it up. -->
+    <style name="Widget.TikketX.TextInput" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxBackgroundColor">@color/surface_soft</item>
+        <item name="boxStrokeColor">@color/input_box_stroke</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+        <item name="boxCornerRadiusTopStart">16dp</item>
+        <item name="boxCornerRadiusTopEnd">16dp</item>
+        <item name="boxCornerRadiusBottomStart">16dp</item>
+        <item name="boxCornerRadiusBottomEnd">16dp</item>
+        <item name="hintTextColor">@color/tikketx_red</item>
+        <item name="android:textColorHint">@color/text_secondary</item>
+    </style>
+
+    <!-- ============ Navigation & containers ============ -->
+
+    <style name="Widget.TikketX.BottomNav" parent="Widget.MaterialComponents.BottomNavigationView">
+        <item name="android:background">@color/card</item>
+        <item name="itemIconTint">@color/nav_item_color</item>
+        <item name="itemTextColor">@color/nav_item_color</item>
+        <item name="itemRippleColor">@color/tikketx_red_soft</item>
+        <item name="labelVisibilityMode">labeled</item>
+        <item name="elevation">12dp</item>
+    </style>
+
+    <style name="ThemeOverlay.TikketX.BottomSheet" parent="ThemeOverlay.MaterialComponents.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.TikketX.BottomSheetModal</item>
+    </style>
+
+    <style name="Widget.TikketX.BottomSheetModal" parent="Widget.MaterialComponents.BottomSheet.Modal">
+        <item name="backgroundTint">@color/card</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.TikketX.BottomSheet</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.TikketX.BottomSheet" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">28dp</item>
+        <item name="cornerSizeTopRight">28dp</item>
+    </style>
+
+    <!-- Rounded thumbnails (inventory rows). -->
+    <style name="ShapeAppearanceOverlay.TikketX.Thumb" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">14dp</item>
+    </style>
+
+    <!-- Full-width dialog used for the receipt preview. -->
+    <style name="Theme.TikketXPOS.Dialog" parent="ThemeOverlay.MaterialComponents.Dialog">
+        <item name="android:windowMinWidthMajor">96%</item>
+        <item name="android:windowMinWidthMinor">96%</item>
+        <item name="android:windowBackground">@drawable/bg_dialog</item>
+    </style>
+</resources>

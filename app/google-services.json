@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "1075100146791",
+    "firebase_url": "https://swipe-8bb22-default-rtdb.firebaseio.com",
+    "project_id": "swipe-8bb22",
+    "storage_bucket": "swipe-8bb22.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1075100146791:android:c4674c17d2eac51c6a48c2",
+        "android_client_info": {
+          "package_name": "com.tikketx.pos"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1075100146791-a2aehrblllsgmj7rtagk0hg5777dbg59.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB5cyFPzXs6hcohOVm903-B7hkVJ9sFflY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1075100146791-a2aehrblllsgmj7rtagk0hg5777dbg59.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

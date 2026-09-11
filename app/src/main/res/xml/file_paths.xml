@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  Shared paths for the camera FileProvider.
+
+  A photo taken with the system camera is written to a file the camera app
+  supplies a URI for; without a declared provider path, MediaStore.ACTION_IMAGE
+  CAPTURE fails on Android 7+ with a FileUriExposedException.
+
+  Scoped to a single cache subdirectory so nothing else in the app's storage is
+  reachable through the provider.
+-->
+<paths>
+    <cache-path
+        name="product_photos"
+        path="product_photos/" />
+</paths>

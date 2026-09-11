@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- TikketX brand palette (tikketx.com guideline colors) -->
+    <color name="tikketx_red">#F50000</color>
+    <color name="tikketx_red_dark">#CC0000</color>
+    <color name="tikketx_red_bright">#FF3B2F</color>
+    <color name="tikketx_red_deep">#A80000</color>
+    <color name="tikketx_red_soft">#FFF1F1</color>
+    <color name="tikketx_red_soft_border">#FFD8D8</color>
+    <color name="tikketx_red_disabled">#F2ABA5</color>
+    <color name="tikketx_emerald">#10B981</color>
+    <color name="emerald_soft">#E6F8F1</color>
+
+    <color name="background">#F8FAFC</color>
+    <color name="card">#FFFFFF</color>
+    <color name="surface_soft">#F1F5F9</color>
+    <color name="text_primary">#1E293B</color>
+    <color name="text_secondary">#64748B</color>
+    <color name="border">#E2E8F0</color>
+    <color name="border_soft">#EDF1F6</color>
+
+    <!-- Translucent whites for content on the brand gradient -->
+    <color name="white_70">#B3FFFFFF</color>
+    <color name="white_20">#33FFFFFF</color>
+
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <!-- Offline notice: a warning the cashier can keep working through, so
+         amber rather than the brand red used for real errors. -->
+    <color name="amber_soft">#FFF4E0</color>
+    <color name="amber_text">#8A5300</color>
+</resources>

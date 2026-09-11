@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Soft red rounded square behind card icons (Accounts-Made-Easy style tile). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/tikketx_red_soft" />
+    <corners android:radius="13dp" />
+</shape>

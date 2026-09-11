@@ -1,0 +1,9 @@
+<resources>
+    <!-- API 27+ can render dark navigation-bar icons, so the gesture/nav bar
+         goes transparent and content (padded via EdgeToEdge.kt) shows through.
+         Older devices keep the default opaque bar. -->
+    <style name="Theme.TikketXPOS" parent="Base.Theme.TikketXPOS">
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+</resources>

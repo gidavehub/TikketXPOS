@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "549954354577",
+    "firebase_url": "https://mbalit-490022-default-rtdb.firebaseio.com",
+    "project_id": "mbalit-490022",
+    "storage_bucket": "mbalit-490022.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:549954354577:android:ed1c1470366354e6ad2e30",
+        "android_client_info": {
+          "package_name": "com.tikketx.pos"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "549954354577-puk9eiq9utqbd9sfcj5kbplrhkivorka.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB1a_cy8LLS1iEsrFuLw-q9kJpW6Sfu1RY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "549954354577-puk9eiq9utqbd9sfcj5kbplrhkivorka.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The mark is red, so the icon reads on a white field the way the supplied
+     artwork does. Inverting to a red tile would restate the brand colour but
+     stop being the logo. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@android:color/white" />
+</shape>

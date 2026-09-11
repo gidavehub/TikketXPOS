@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TikketX POS</string>
+
+    <!-- Login -->
+    <string name="login_title">TIKKETX</string>
+    <string name="login_subtitle">Point of Sale · powered with Swipe</string>
+    <string name="login_email">Terminal address</string>
+    <string name="password">Password</string>
+    <string name="sign_in">Sign in</string>
+    <string name="login_missing">Enter the terminal address and password.</string>
+    <string name="login_hint">Your manager creates terminal accounts on Swipe → POS Devices. Sign in with the address shown there, e.g. counter1@yourshop.swipe</string>
+
+    <!-- Sell -->
+    <string name="sell">Sell</string>
+    <string name="sell_subtitle">Tap a product to add it to the cart</string>
+    <string name="search_products">Search products or type a barcode…</string>
+    <string name="scan">Scan</string>
+    <string name="no_products">No products found.\nAdd stock on Swipe or from the Stock tab.</string>
+    <string name="stock_left">%1$s %2$s left</string>
+    <string name="view_cart">View cart</string>
+    <string name="all_categories">All</string>
+    <string name="recent_sales">Recent sales</string>
+    <string name="out_of_stock">Out of stock</string>
+    <string name="only_n_in_stock">Only %1$s in stock.</string>
+
+    <!-- Checkout -->
+    <string name="checkout">Checkout</string>
+    <string name="cash">Cash</string>
+    <string name="card">Card</string>
+    <string name="mobile_money">Mobile money</string>
+    <string name="credit">Credit</string>
+    <string name="amount_received">Amount received</string>
+    <string name="customer_optional">Customer name (optional)</string>
+    <string name="customer_required">Customer name (required)</string>
+    <string name="customer_phone">Customer phone</string>
+    <string name="credit_due_date">Due date (YYYY-MM-DD)</string>
+    <string name="credit_needs_name">Credit sales need a customer name.</string>
+    <string name="subtotal">Subtotal</string>
+    <string name="discount">Discount</string>
+    <string name="apply_tax">Apply tax</string>
+    <string name="no_tax">No tax</string>
+    <string name="total">Total</string>
+    <string name="change">Change</string>
+    <string name="short_by">Short by %1$s</string>
+    <string name="charge_amount">Charge %1$s</string>
+    <string name="record_credit_sale">Record credit sale</string>
+    <string name="line_discount">Discount</string>
+    <string name="cart_empty">Your cart is empty.</string>
+    <string name="clear_cart">Clear</string>
+
+    <!-- Sale confirmation -->
+    <string name="payment">Payment</string>
+    <string name="customer">Customer</string>
+    <string name="credit_due">Due</string>
+
+    <!-- Receipt -->
+    <string name="change_due">Change %1$s</string>
+    <string name="done">Done</string>
+    <string name="printed">Printed ✓</string>
+    <string name="printed_fallback">No built-in printer — opening the system print dialog.</string>
+    <string name="printer_failed">The printer rejected the job. Check paper and try again.</string>
+
+    <!-- Returns -->
+    <string name="returns_title">Process return</string>
+    <string name="return_reason">Reason for return</string>
+    <string name="return_action">Process return</string>
+    <string name="returned_badge">Returned</string>
+    <string name="return_done">Return processed — stock restored.</string>
+    <string name="return_pick_items">Enter how many of each item are coming back.</string>
+    <string name="refund_total">Refund total</string>
+    <string name="no_sales_yet">No sales recorded yet.</string>
+
+    <!-- Scanner -->
+    <string name="point_at_barcode">Point the camera at a barcode or QR code</string>
+    <string name="close">Close</string>
+
+    <!-- Remote scan (requested from the Swipe dashboard) -->
+    <string name="remote_scan_title">Scan requested</string>
+    <string name="remote_scan_message">Your Swipe dashboard is asking this terminal to scan a barcode. Point the camera at the product and the code lands in the form on your computer.</string>
+    <string name="remote_scan_accept">Scan now</string>
+    <string name="remote_scan_ignore">Ignore</string>
+    <string name="remote_scan_sent">Sent %1$s to the dashboard ✓</string>
+
+    <!-- Inventory -->
+    <string name="inventory">Stock</string>
+    <string name="inventory_subtitle">Add and track your products</string>
+    <string name="add_product">Add product</string>
+    <string name="edit_product">Edit product</string>
+    <string name="no_inventory">No products yet — tap + to add your first one.</string>
+    <string name="search_inventory">Search stock…</string>
+    <string name="product_name">Product name</string>
+    <string name="product_description">Description (optional)</string>
+    <string name="selling_price">Selling price (D)</string>
+    <string name="cost_price">Cost price (D)</string>
+    <string name="opening_stock">Stock quantity</string>
+    <string name="low_stock_threshold">Low-stock alert below</string>
+    <string name="barcode_sku">Barcode / SKU</string>
+    <string name="category">Category</string>
+    <string name="unit">Unit (pcs, kg…)</string>
+    <string name="add_photo">Add photo</string>
+    <string name="change_photo">Change photo</string>
+    <string name="add_photo_title">Product photo</string>
+    <string name="photo_take">Take a photo</string>
+    <string name="photo_choose">Choose from photos</string>
+    <string name="camera_permission_needed">Camera permission is needed to take a product photo.</string>
+    <string name="camera_unavailable">Could not open the camera on this device.</string>
+    <string name="save_product">Save product</string>
+    <string name="save_changes">Save changes</string>
+    <string name="low_stock">Low</string>
+    <string name="stock_value">Stock value</string>
+    <string name="products_count">%1$d products</string>
+
+    <!-- Stock actions -->
+    <string name="stock_actions_title">%1$s</string>
+    <string name="action_stock_in">Add stock</string>
+    <string name="action_adjust">Adjust count</string>
+    <string name="action_history">Stock history</string>
+    <string name="action_edit">Edit details</string>
+    <string name="action_remove">Remove product</string>
+    <string name="stock_in_title">Add stock</string>
+    <string name="adjust_title">Adjust stock</string>
+    <string name="quantity">Quantity</string>
+    <string name="counted_quantity">Counted quantity</string>
+    <string name="note_optional">Note (optional)</string>
+    <string name="current_stock_is">Currently %1$s %2$s on the shelf.</string>
+    <string name="stock_added">Stock added ✓</string>
+    <string name="stock_adjusted">Stock adjusted ✓</string>
+    <string name="no_movements">No stock movements recorded yet.</string>
+    <string name="remove_product_title">Remove “%1$s”?</string>
+    <string name="remove_product_message">It disappears from this device and from Swipe. Past sales keep their record of it.</string>
+    <string name="remove">Remove</string>
+    <string name="cancel">Cancel</string>
+    <string name="product_removed">“%1$s” removed.</string>
+    <string name="product_saved">“%1$s” saved.</string>
+
+    <!-- Reports -->
+    <string name="reports">Reports</string>
+    <string name="reports_subtitle">Today at a glance</string>
+    <string name="todays_sales">Today\'s sales</string>
+    <string name="transactions">Transactions</string>
+    <string name="average_sale">Average sale</string>
+    <string name="items_sold">Items sold</string>
+    <string name="cash_taken">Cash</string>
+    <string name="non_cash_taken">Card / mobile / credit</string>
+    <string name="reports_hint">Full reports, expenses and financial health live on your Swipe dashboard.</string>
+
+    <!-- Settings -->
+    <string name="settings">Settings</string>
+    <string name="settings_subtitle">Terminal, tickets &amp; printer</string>
+    <string name="terminal_meta">%1$s · %2$s\nSigned in as %3$s (%4$s)</string>
+    <string name="ticket_style">Ticket style</string>
+    <string name="style_classic">Classic</string>
+    <string name="style_compact">Compact</string>
+    <string name="style_ticket">Ticket + QR</string>
+    <string name="printer">Printer</string>
+    <string name="printer_native">Built-in printer connected ✓</string>
+    <string name="printer_fallback">No built-in printer — receipts use the system print dialog.</string>
+    <string name="printer_not_found">No printer service found on this device.</string>
+    <string name="test_print">Test print</string>
+    <string name="sign_out">Sign out</string>
+    <string name="partnership_footer">TikketX × Swipe partnership</string>
+    <string name="partnership_prefix">TikketX ×</string>
+    <string name="partnership_brand">Swipe partnership</string>
+    <string name="swipe_logo_desc">Swipe</string>
+
+    <!-- Connectivity -->
+    <string name="offline_banner">Offline — sales are saved on this device and sync automatically.</string>
+    <string name="syncing_banner">Back online — sending everything to Swipe…</string>
+
+    <!-- Diagnostics -->
+    <string name="crash_title">The app closed unexpectedly</string>
+    <string name="crash_copy">Copy details</string>
+    <string name="crash_dismiss">Dismiss</string>
+    <string name="crash_copied">Crash details copied — paste them to your developer.</string>
+
+    <!-- Errors -->
+    <string name="terminal_revoked">This terminal was deactivated or removed on Swipe.</string>
+    <string name="could_not_load_products">Could not load products.</string>
+
+    <!-- Nav -->
+    <string name="nav_sell">Sell</string>
+    <string name="nav_inventory">Stock</string>
+    <string name="nav_reports">Reports</string>
+    <string name="nav_settings">Settings</string>
+</resources>
